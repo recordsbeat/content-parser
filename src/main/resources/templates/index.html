@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="serializer.js"></script>
+    <style>
+    body{
+        margin:auto;
+        font-size : 20px;
+    }
+    div{
+        margin-top : 15px;
+    }
+    .container{
+      margin-top:50px;
+      width: 80%;
+      text-align:center;
+    }
+    .rightAlign{
+        text-align:right;
+        margin-right : 5%;
+    }
+    .leftAlign{
+        text-align:left;
+        margin-left : 5%;
+    }
+    .result div{
+        overflow: scroll;
+    }
+    #url{
+        width:80%;
+        height: 50px;
+    }
+
+
+</style>
+    <title>Hello Thymeleaf</title></head>
+<body>
+<div class="container">
+    <h5>Contents-Parser</h5>
+    <form id="frm" name="frm">
+        <div>URL : <input type="text" id="url" name="url" placeholder="http://example.com"/></div>
+        <div> TYPE :
+            <select id="parsingType" name="parsingType">
+                <option value="HTML">HTML</option>
+                <option value="TEXT">TEXT</option>
+            </select>
+        </div>
+        <div class="rightAlign">출력묶음단위(자연수)
+            <input type="text" id="chunkSize" name="chunkSize"
+                   placeholder=""/>
+        </div>
+        <div class="rightAlign">
+            <button type="button" id="submit" value="제출">제출</button>
+        </div>
+    </form>
+    <div class="result leftAlign">
+        <div>
+            몫 : <span id="share"></span>
+        </div>
+        <div>
+            나머지 : <span id="rest"></span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script type="text/javascript">
+var main={
+		init : function(){
+		    const _this = this;
+			$('#submit').click(function(){
+			    _this.submit();
+			});
+		},
+		submit : function(){
+            const form = JSON.stringify($('#frm').serializeObject())
+
+		    $.ajax({
+				url : "/request",
+				data : form,
+				type : 'POST',
+				contentType: 'application/json',
+				success : function(data) {
+                    $('#share').text(data.share);
+                    $('#rest').text(data.rest);
+				},
+				error : function(request, status, error) {
+					alert("code:" + request.status + "\n" + "message:"
+							+ request.responseText + "\n" + "error:" + error);
+				}
+			});
+		}
+};
+main.init();
+
+
+</script>

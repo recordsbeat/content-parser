@@ -1,21 +1,15 @@
 package com.recordsbeat.contentparser.service;
 
+import com.recordsbeat.contentparser.domain.Content;
 import com.recordsbeat.contentparser.enums.ParsingType;
-import com.recordsbeat.contentparser.web.ResultDto;
+import com.recordsbeat.contentparser.web.dto.RequestDto;
+import com.recordsbeat.contentparser.web.dto.ResultDto;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -27,7 +21,17 @@ public class ContentsParserService {
     private final static String digitExtractionPattern = "[^0-9]+";
     private final static String alphabetExtractionPattern = "[^a-zA-Z]+";
 
-    public String parsingContent(String url, ParsingType parsingType) {
+
+    public ResultDto parseContent(RequestDto requestDto){
+        //crawling
+        String crawlResult = getContent(requestDto.getUrl(),requestDto.getParsingType());
+
+        Content contents = new Content(crawlResult,requestDto.getChunkSize());
+        return contents.generateResult();
+    }
+
+
+    public String getContent(String url, ParsingType parsingType) {
         String result = "";
         try {
             Document document = Jsoup.connect(url)
@@ -43,7 +47,7 @@ public class ContentsParserService {
         }
         return result;
     }
-
+    /*
     public String extractAlphabets(String contents) {
         return contents.replaceAll(alphabetExtractionPattern, "");
     }
@@ -99,6 +103,9 @@ public class ContentsParserService {
     }
 
     public List<String> splitInChunks(String str, int chunkSize){
+        if(chunkSize<1)
+            throw new IllegalArgumentException("chunk size must be bigger than 0");
+
         final AtomicInteger count =new AtomicInteger(0);
         Collection<String> splitStrList = strToList(str).stream()
                 .collect(Collectors.groupingBy(e-> count.getAndIncrement()/chunkSize
@@ -107,24 +114,13 @@ public class ContentsParserService {
 
         return new ArrayList<>(splitStrList);
     }
+
     public ResultDto calResult(List<String> stringList, int chunkSize){
-        String share;
-        String rest = null;
-        if(stringList.get(stringList.size()-1).length() < chunkSize)
-            rest = stringList.get(stringList.size()-1);
-
-        share = stringList.stream()
-                .filter(x -> x.length()==chunkSize)
-                .collect(Collectors.joining());
-
-        return ResultDto.builder()
-                .share(share)
-                .rest(StringUtils.isEmpty(rest) ?"":rest)
-                .build();
+        return new ResultDto(stringList,chunkSize);
     }
 
 
     private List<String> strToList(String str){
         return Arrays.asList(str.split(""));
-    }
+    }*/
 }

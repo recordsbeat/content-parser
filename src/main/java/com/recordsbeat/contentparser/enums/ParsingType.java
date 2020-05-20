@@ -1,9 +1,11 @@
 package com.recordsbeat.contentparser.enums;
 
+import lombok.ToString;
 import org.jsoup.nodes.Document;
 
 import java.util.function.Function;
 
+@ToString
 public enum ParsingType {
     TEXT(document -> document.text()),
     HTML(document -> document.html());

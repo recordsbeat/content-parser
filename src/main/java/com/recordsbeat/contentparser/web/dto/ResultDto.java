@@ -1,4 +1,4 @@
-package com.recordsbeat.contentparser.web;
+package com.recordsbeat.contentparser.web.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -14,5 +14,9 @@ public class ResultDto {
     public ResultDto(String share, String rest) {
         this.share = share;
         this.rest = rest;
+    }
+
+    public String getFullResult(){
+        return share+rest;
     }
 }

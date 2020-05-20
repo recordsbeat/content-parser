@@ -1,8 +1,9 @@
 package com.recordsbeat.contentparser.service;
 
+import com.recordsbeat.contentparser.domain.Content;
 import com.recordsbeat.contentparser.enums.ParsingType;
-import com.recordsbeat.contentparser.web.ResultDto;
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import com.recordsbeat.contentparser.web.dto.RequestDto;
+import com.recordsbeat.contentparser.web.dto.ResultDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 class ContentsParserServiceTest {
@@ -32,14 +35,14 @@ class ContentsParserServiceTest {
     }
 
     @Test
-    void parsingContent() {
-        String url = "https://stackoverflow.com/questions/39568461/jsoup-statuscode-wont-print-404-error";
+    void getContent() {
+        String url = "https://github.com/recordsbeat/content-parser";
         ParsingType parsingType = ParsingType.TEXT;
-        String result = contentsParserService.parsingContent(url, parsingType);
+        String result = contentsParserService.getContent(url, parsingType);
 
         System.out.println("result : " + result);
 
-        //assertAll();
+        assertNotNull(result);
     }
 
     @Test
@@ -48,8 +51,8 @@ class ContentsParserServiceTest {
 
         String url = "https://stackoverflow.com/questions/39568461/jsoup-statuscode-wont-print-404-error";
         ParsingType parsingType = ParsingType.HTML;
-        String result = contentsParserService.parsingContent(url, parsingType);
-        String extractedStr = contentsParserService.extractAlphabets(result);
+        String result = contentsParserService.getContent(url, parsingType);
+        String extractedStr = result.replaceAll("[^a-zA-Z]+", "");
         System.out.println("extractedStr : " + extractedStr);
 
         assertTrue(extractedStr.matches(pattern));
@@ -61,28 +64,14 @@ class ContentsParserServiceTest {
 
         String url = "https://stackoverflow.com/questions/39568461/jsoup-statuscode-wont-print-404-error";
         ParsingType parsingType = ParsingType.TEXT;
-        String result = contentsParserService.parsingContent(url, parsingType);
+        String result = contentsParserService.getContent(url, parsingType);
 
-        String extractedStr = contentsParserService.extractDigits(result);
+        String extractedStr = result.replaceAll("[^0-9]+", "");
         System.out.println("extractedStr : " + extractedStr);
         assertTrue(extractedStr.matches(pattern));
     }
 
-    @Test
-    void sortDigits() {
-        String digits = "2035160349672037";
-        String result = contentsParserService.sortDigits(digits);
 
-        System.out.println("sortDigits : " + result);
-    }
-
-    @Test
-    void sortCapitalPrior(){
-        String alphabets = "SadoSDGJvANCNEaosdW";
-        String result = contentsParserService.sortCapitalPrior(alphabets);
-        System.out.println("result : " + result);
-
-    }
     @Test
     void sortCapitalPriorTest(){
         String alphabets = "aAAaddDbB";
@@ -98,16 +87,9 @@ class ContentsParserServiceTest {
                 .map(String::valueOf)
                 .collect(Collectors.joining());
         System.out.println("result : " + result);
+        assertEquals(result,"AAaaBbDdd");
     }
 
-    @Test
-    void mergeString() {
-        String alphabets = contentsParserService.sortCapitalPrior("aAAaddDbB");
-        String digits = contentsParserService.sortDigits("2035160349672037");
-
-        String result = contentsParserService.mergeStrings(alphabets,digits);
-        System.out.println("result : " + result);
-    }
 
     @Test
     void splitInChunksTest(){
@@ -124,31 +106,24 @@ class ContentsParserServiceTest {
 
 
         strList.stream()
-                .filter(x-> x.length()==3)
-                .forEach(x-> System.out.println("elm : " + x));
-    }
-
-    @Test
-    void splitInChunks() {
-        String str = "12312312312312312312312312";
-        int chunkSize = 3;
-        contentsParserService.splitInChunks(str,chunkSize)
-                .stream()
                 .filter(x-> x.length()==chunkSize)
                 .peek(x -> assertSame(x.length(),chunkSize))
                 .forEach(x-> System.out.println("elm : " + x));
     }
 
     @Test
-    void calResult() {
-        String str = "12312312312312312312312312";
-        int chunkSize = 3;
-        List<String> res = contentsParserService.splitInChunks(str,chunkSize);
+    void parseContent() {
+        RequestDto requestDto = RequestDto.builder()
+                .url("https://blog.naver.com/PostView.nhn?blogId=acornedu&logNo=221519913222&from=search&redirect=Log&widgetTypeCall=true&directAccess=false")
+                .parsingType(ParsingType.TEXT)
+                .chunkSize(10)
+                .build();
+        ResultDto resultDto = contentsParserService.parseContent(requestDto);
 
-        ResultDto result = contentsParserService.calResult(res,chunkSize);
-        System.out.println("result : " + result);
-        assertEquals(result.getShare(), "123123123123123123123123");
-        assertEquals(result.getRest(), "12");
+        System.out.println("result : " + resultDto);
 
+        assertEquals(resultDto.getShare().length()%requestDto.getChunkSize(), 0);
+        assertTrue(resultDto.getRest().length()<requestDto.getChunkSize());
     }
+
 }
