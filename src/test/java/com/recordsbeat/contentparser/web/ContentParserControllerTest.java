@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-class ContentsParserControllerTest {
+class ContentParserControllerTest {
 
     @Autowired
     MockMvc mockMvc;

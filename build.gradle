@@ -27,6 +27,8 @@ dependencies {
 	compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.1'
 
 	compile 'org.jsoup:jsoup:1.13.1'
+	compile group: 'net.sourceforge.htmlunit', name: 'htmlunit', version: '2.36.0'
+
 }
 
 test {

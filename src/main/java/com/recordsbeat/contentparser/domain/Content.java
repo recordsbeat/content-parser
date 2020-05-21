@@ -18,12 +18,12 @@ public class Content {
     private final static String digitExtractionPattern = "[^0-9]+";
     private final static String alphabetExtractionPattern = "[^a-zA-Z]+";
 
-    private final String contentsText;
+    private final String contentText;
     private final int chunkSize;
 
 
-    public Content(String contentsText, int chunkSize) {
-        this.contentsText = contentsText;
+    public Content(String contentText, int chunkSize) {
+        this.contentText = contentText;
         this.chunkSize = chunkSize;
     }
 
@@ -58,7 +58,7 @@ public class Content {
             throw new IllegalArgumentException("chunk size must be bigger than 0");
 
         final AtomicInteger count =new AtomicInteger(0);
-        Collection<String> splitStrList = strToList(str).stream()
+        Collection<String> splitStrList = convertStrToList(str).stream()
                 .collect(Collectors.groupingBy(e-> count.getAndIncrement()/this.chunkSize
                         , Collectors.joining()))
                 .values();
@@ -66,15 +66,15 @@ public class Content {
         return new ArrayList<>(splitStrList);
     }
 
-    private String mergeStrings(String s1, String s2) {
+    private String mergeStrings(String str1, String str2) {
         StringBuilder result = new StringBuilder();
 
-        for (int i = 0; i < s1.length() || i < s2.length(); i++) {
-            if (i < s1.length())
-                result.append(s1.charAt(i));
+        for (int i = 0; i < str1.length() || i < str2.length(); i++) {
+            if (i < str1.length())
+                result.append(str1.charAt(i));
 
-            if (i < s2.length())
-                result.append(s2.charAt(i));
+            if (i < str2.length())
+                result.append(str2.charAt(i));
         }
 
         return result.toString();
@@ -85,7 +85,7 @@ public class Content {
         if(!alphabets.matches(alphabetPattern))
             throw new IllegalArgumentException("parameter ["+alphabets+"] does not contain only alphabets");
 
-        List<String> sortedAlphabets = strToList(alphabets);
+        List<String> sortedAlphabets = convertStrToList(alphabets);
         sortedAlphabets.sort((str1, str2) -> {
             if (str1.toUpperCase().equals(str2.toUpperCase()))
                 return str1.compareTo(str2);
@@ -108,13 +108,13 @@ public class Content {
     }
 
     public String extractAlphabets() {
-        return contentsText.replaceAll(alphabetExtractionPattern, "");
+        return contentText.replaceAll(alphabetExtractionPattern, "");
     }
 
     public String extractDigits() {
-        return contentsText.replaceAll(digitExtractionPattern, "");
+        return contentText.replaceAll(digitExtractionPattern, "");
     }
-    private List<String> strToList(String str){
+    private List<String> convertStrToList(String str){
         return Arrays.asList(str.split(""));
     }
 }

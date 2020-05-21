@@ -32,12 +32,38 @@
         width:80%;
         height: 50px;
     }
+    .wrap-loading{
+        position: fixed;
+        left:0;
+        right:0;
+        top:0;
+        bottom:0;
+        background: rgba(0,0,0,0.2); /*not in ie */
+        filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr='#20000000', endColorstr='#20000000');    /* ie */
+    }
+
+    .wrap-loading div{
+        position: fixed;
+        top:50%;
+        left:50%;
+        margin-left: -21px;
+        margin-top: -21px;
+    }
+    .wrap-loading img{
+        width : 50px;
+    }
+    .display-none{
+        display:none;
+    }
 
 
-</style>
-    <title>Hello Thymeleaf</title></head>
+    </style>
+    <title>Contents-Parser</title></head>
 <body>
 <div class="container">
+    <div class="wrap-loading display-none">
+        <div><img src="loading1.gif"/></div>
+    </div>
     <h5>Contents-Parser</h5>
     <form id="frm" name="frm">
         <div>URL : <input type="text" id="url" name="url" placeholder="http://example.com"/></div>
@@ -74,10 +100,18 @@ var main={
 			$('#submit').click(function(){
 			    _this.submit();
 			});
+			$('#chunkSize').keyup(function(){
+			    //number only
+			    $(this).val($(this).val().replace(/[^0-9]/g,""));
+			});
+			$('#url').blur(function(){
+			    const expUrl = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
+			    if(!expUrl.test($(this).val()))
+			        alert(" 올바른 URL 형식이 아닙니다. ex)https://www.naver.com/ ");
+			});
 		},
 		submit : function(){
             const form = JSON.stringify($('#frm').serializeObject())
-
 		    $.ajax({
 				url : "/request",
 				data : form,
@@ -90,11 +124,22 @@ var main={
 				error : function(request, status, error) {
 					alert("code:" + request.status + "\n" + "message:"
 							+ request.responseText + "\n" + "error:" + error);
-				}
+				},
+				beforeSend:function(){
+                    $('.wrap-loading').removeClass('display-none');
+                },
+                complete:function(){
+                    $('.wrap-loading').addClass('display-none');
+                }
 			});
+
 		}
 };
 main.init();
+
+
+
+
 
 
 </script>

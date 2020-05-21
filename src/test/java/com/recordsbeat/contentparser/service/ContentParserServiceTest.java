@@ -1,9 +1,13 @@
 package com.recordsbeat.contentparser.service;
 
-import com.recordsbeat.contentparser.domain.Content;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.recordsbeat.contentparser.enums.ParsingType;
 import com.recordsbeat.contentparser.web.dto.RequestDto;
 import com.recordsbeat.contentparser.web.dto.ResultDto;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,14 +19,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 @SpringBootTest
-class ContentsParserServiceTest {
+class ContentParserServiceTest {
 
     @Autowired
-    ContentsParserService contentsParserService;
+    ContentParserService contentsParserService;
 
 
     @BeforeEach
@@ -35,8 +37,10 @@ class ContentsParserServiceTest {
     }
 
     @Test
-    void getContent() {
-        String url = "https://github.com/recordsbeat/content-parser";
+    void getContent() throws Exception{
+
+        String url = "https://en.dict.naver.com/#/main";
+
         ParsingType parsingType = ParsingType.TEXT;
         String result = contentsParserService.getContent(url, parsingType);
 
@@ -46,7 +50,32 @@ class ContentsParserServiceTest {
     }
 
     @Test
-    void extractAlphabets() {
+    void getDynamicContent()throws Exception{
+
+        String url = "https://en.dict.naver.com/#/main";
+
+        WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
+        webClient.getOptions().setJavaScriptEnabled(true);
+        webClient.getOptions().setCssEnabled(false);
+        webClient.getOptions().setThrowExceptionOnScriptError(false);
+        webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
+        webClient.getOptions().setTimeout(10 * 1000);
+        HtmlPage page = webClient.getPage(url);
+        webClient.waitForBackgroundJavaScript(2 * 1000); // maximum 2sec
+
+        String pageAsXml = page.asXml();
+
+        Document doc = Jsoup.parse(pageAsXml, url);
+
+        String result = ParsingType.TEXT.getContent(doc);
+
+        System.out.println("result : " + result);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void extractAlphabets() throws Exception{
         String pattern = "^[a-zA-Z]*$";
 
         String url = "https://stackoverflow.com/questions/39568461/jsoup-statuscode-wont-print-404-error";
@@ -59,7 +88,7 @@ class ContentsParserServiceTest {
     }
 
     @Test
-    void extractDigits() {
+    void extractDigits() throws Exception{
         String pattern = "^[0-9]*$";
 
         String url = "https://stackoverflow.com/questions/39568461/jsoup-statuscode-wont-print-404-error";
@@ -105,16 +134,18 @@ class ContentsParserServiceTest {
         strList = new ArrayList<>(strings);
 
 
-        strList.stream()
+        String result = strList.stream()
                 .filter(x-> x.length()==chunkSize)
-                .peek(x -> assertSame(x.length(),chunkSize))
-                .forEach(x-> System.out.println("elm : " + x));
+                .peek(x-> System.out.println("elm : " + x))
+                .collect(Collectors.joining());
+
+        assertEquals(result, "123123123123123123123123");
     }
 
     @Test
-    void parseContent() {
+    void parseContent() throws Exception{
         RequestDto requestDto = RequestDto.builder()
-                .url("https://blog.naver.com/PostView.nhn?blogId=acornedu&logNo=221519913222&from=search&redirect=Log&widgetTypeCall=true&directAccess=false")
+                .url("https://www.mule.co.kr/popup/KbjlDXzYqh")
                 .parsingType(ParsingType.TEXT)
                 .chunkSize(10)
                 .build();
