@@ -145,7 +145,7 @@ class ContentParserServiceTest {
     @Test
     void parseContent() throws Exception{
         RequestDto requestDto = RequestDto.builder()
-                .url("https://www.mule.co.kr/popup/KbjlDXzYqh")
+                .url("https://front.wemakeprice.com/main")
                 .parsingType(ParsingType.TEXT)
                 .chunkSize(10)
                 .build();
